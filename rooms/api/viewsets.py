@@ -7,14 +7,16 @@ from .serializers import RoomSerializer,RoomChoiceSerializer,ReserveRoomSerializ
 class RoomViewSets(ModelViewSet):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class RoomChoiceViewSets(ModelViewSet):
     queryset = RoomChoice.objects.all()
     serializer_class = RoomChoiceSerializer
-
+    permission_classes = [IsAuthenticated]
 
 class ReserveRoomViewSets(ModelViewSet):
     queryset = Room.objects.all()
     serializer_class = ReserveRoomSerializer
+    permission_classes = [IsAuthenticated]
     permission_classes = [IsAuthenticated]

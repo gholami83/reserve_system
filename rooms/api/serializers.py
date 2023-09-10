@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from rest_framework.fields import empty
 from ..models import Room,RoomChoice
+
 
 
 class RoomSerializer(serializers.ModelSerializer):
@@ -61,3 +61,4 @@ class ReserveRoomSerializer(serializers.ModelSerializer):
             'date_reserved',
             'reserved',
         ]
+        
