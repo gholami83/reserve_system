@@ -1,5 +1,7 @@
 from datetime import date,timedelta
+from django.utils import timezone
 from django.db import models 
+from django.utils.timezone import now
 from django.contrib.auth import get_user_model
 
 
@@ -8,10 +10,12 @@ def get_date_time():
 
 
 class Room(models.Model):
-    room_number = models.IntegerField(default=0)
-    date_reserve = models.DateField(auto_now_add=True)
+    reserver_name = models.CharField(max_length=50,null=False)
+    room_number = models.IntegerField(default=0,blank=False)
+    date_reserve = models.DateField(default = date.today(),null=True)
     reserved = models.BooleanField(default=False)
-    date_unreserved = models.DateField(default= get_date_time)
+    date_unreserved = models.DateField(default= get_date_time,null=True)
+
     def __str__(self) -> str:
         return str(self.room_number + self.reserved)
 
