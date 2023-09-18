@@ -9,6 +9,7 @@ class CreateHotelViewSets(ModelViewSet):
     serializer_class = CreateHotelSerializer
     def get_queryset(self):
         return Hotel.objects.filter(user = self.request.user)
+    permission_classes = [IsAuthenticated]
 
 
 class CreateRoomViewSets(ModelViewSet):

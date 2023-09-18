@@ -11,10 +11,16 @@ class CreateHotelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hotel
         fields = [
+            'id',   
             'name',
             'address',
             'phone',
+            'user',
         ]
+    user = serializers.SerializerMethodField()
+    def get_user(self,instance):
+        return instance.user.email
+
 
 
 class CreateRoomSerializer(serializers.ModelSerializer):
@@ -22,7 +28,6 @@ class CreateRoomSerializer(serializers.ModelSerializer):
         model = Room
         fields = [
             'room_number',
-            'reserver_name',
             'date_reserve',
             'reserved',
         ]
