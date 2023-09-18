@@ -1,36 +1,13 @@
 from django.urls import path,include
 from rest_framework import routers 
 from rest_framework import renderers
-from .api.viewsets import UsersViewSets,CreateHotelViewSets,CreateRoomViewSets,ReserveRoomViewSets
-
-
-# CreateAdminViewSets_list = CreateAdminViewSets.as_view({
-#     'get': 'list',
-#     'post': 'create',
-# })
-# CreateAdminViewSets_detail = CreateAdminViewSets.as_view({
-#     'get': 'retrieve',
-#     'put': 'update',
-#     'patch': 'partial_update',
-#     'delete': 'destroy',
-# })
-UsersViewSets_list = UsersViewSets.as_view({
-    'get': 'list',
-    'post': 'create',
-})
-UsersViewSets_detail = UsersViewSets.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy',
-})
+from .api.viewsets import CreateHotelViewSets,CreateRoomViewSets,ReserveRoomViewSets
 
 
 router = routers.DefaultRouter()
-router.register('',UsersViewSets,basename='user')
-router.register(r'(?P<pk1>\d+)/hotel',CreateHotelViewSets,basename='hotel')
-router.register(r'(?P<pk1>\d+)/hotel/(?P<pk2>\d+)/room',CreateRoomViewSets,basename='room')
-router.register(r'(?P<pk1>\d+)/hotel/(?P<pk2>\d+)/room/(?P<pk3>\d+)/reserve',ReserveRoomViewSets,basename='room')
+router.register(r'hotel',CreateHotelViewSets,basename='hotel')
+router.register(r'hotel/(?P<pk2>\d+)/room',CreateRoomViewSets,basename='room')
+router.register(r'hotel/(?P<pk2>\d+)/room/(?P<pk3>\d+)/reserve',ReserveRoomViewSets,basename='reserve')
 
 urlpatterns = [
     path('',include(router.urls)),
