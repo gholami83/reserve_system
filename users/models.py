@@ -18,7 +18,7 @@ class Hotel(models.Model):
 class Room(models.Model):
     hotel = models.ForeignKey(Hotel,on_delete=models.CASCADE)
     reserver_name = models.CharField(max_length=50,null=False)
-    room_number = models.IntegerField(blank=False,unique=True)
+    room_number = models.IntegerField(blank=False)
     until_reserve = models.DateTimeField(null=True)
     
     def __str__(self) -> str:

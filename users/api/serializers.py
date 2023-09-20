@@ -1,6 +1,7 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from rest_framework.decorators import action
+from rest_framework.validators import UniqueTogetherValidator
 
 from ..models import Hotel,Room
 
@@ -30,32 +31,36 @@ class CreateHotelSerializer(serializers.ModelSerializer):
 
 class CreateRoomSerializer(serializers.ModelSerializer):
     hotel = serializers.SerializerMethodField(read_only=True)
+    until_reserve = serializers.SerializerMethodField(read_only=True)
+    reserver_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
+        validators = [
+            UniqueTogetherValidator(
+                queryset= Room.objects.all(),
+                fields=['hotel','room_number']
+            ),
+        ]
         model = Room
         fields = [
             'id',
             'hotel',
+            'reserver_name',
             'room_number',
             'until_reserve',
         ]
-    
     def get_hotel(self,instance):
         return instance.hotel.name
         
     def get_room_number(self, instance):
         return instance.room_number
-
-    def __init__(self, instance=None, **kwargs):
-        super().__init__(instance, **kwargs)
-
-        view = self.context.get('view')
-        if view.action in [
-            'retrieve',
-            'list',
-        ]:
-            self.fields["room_number"] = serializers.SerializerMethodField(read_only= True)
-
+    
+    def get_until_reserve(self, instance):
+        return instance.until_reserve
+   
+    def get_reserver_name(self, instance):
+        return instance.reserver_name
+    
     def create(self, validated_data):
         hotel_id = self.context.get('hotel_id')
         room_number = self.context.get('room_number')
