@@ -1,13 +1,13 @@
-from django.contrib.auth import get_user_model
-from rest_framework.validators import UniqueForDateValidator
-from rest_framework.fields import empty
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
+from rest_framework.decorators import action
+
 from ..models import Hotel,Room
 
 
-
 class CreateHotelSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
     class Meta:
         model = Hotel
         fields = [
@@ -17,66 +17,80 @@ class CreateHotelSerializer(serializers.ModelSerializer):
             'phone',
             'user',
         ]
-    user = serializers.SerializerMethodField()
-    def get_user(self,instance):
-        return instance.user.email
 
+    def get_user(self,instance):
+        return instance.user.username
+
+    def create(self, validated_data):
+        validated_data.update({
+            "user" : self.context['request'].user,
+        })
+        return super().create(validated_data)
 
 
 class CreateRoomSerializer(serializers.ModelSerializer):
+    hotel = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Room
         fields = [
+            'id',
+            'hotel',
             'room_number',
-            'date_reserve',
-            'reserved',
+            'until_reserve',
         ]
-    def update(self, instance, validated_data):
-        if validated_data.get('reserved'):
-            instance.date_reserve = validated_data.get('date_reserve',instance.date_reserve)
-        else:
-            instance.date_reserve = None
-        instance.reserver_name = validated_data.get('reserver_name',instance.reserver_name)
-        instance.date_reserve = validated_data.get('date_reserve',instance.date_reserve)
-        instance.date_unreserved = validated_data.get('date_unreserved',instance.date_unreserved)
-        instance.save()
-        return instance
     
-    def get_date_reserve(self,instance):
-        return instance.date_reserve
-    
-    def get_room_number(self,instance):
+    def get_hotel(self,instance):
+        return instance.hotel.name
+        
+    def get_room_number(self, instance):
         return instance.room_number
 
     def __init__(self, instance=None, **kwargs):
-        super().__init__(instance,**kwargs)
+        super().__init__(instance, **kwargs)
 
         view = self.context.get('view')
         if view.action in [
             'retrieve',
             'list',
         ]:
-            self.fields["date_reserve"] = serializers.SerializerMethodField()
-            self.fields["room_number"] = serializers.SerializerMethodField(read_only = True)
-                
+            self.fields["room_number"] = serializers.SerializerMethodField(read_only= True)
 
-        validators = [  
-    ]
+    def create(self, validated_data):
+        hotel_id = self.context.get('hotel_id')
+        room_number = self.context.get('room_number')
+        validated_data.update(
+        {
+            "room_number":room_number,
+            "hotel_id":hotel_id,
+        },
+    )
+        return super().create(validated_data)
+
+
 class ReserveRoomSerializer(ModelSerializer):
-    date_unreserved = serializers.SerializerMethodField(read_only = True)
-    def get_date_unreserved(self,instance):
-        return instance.date_unreserved
+    room_number = serializers.SerializerMethodField(read_only = True)
+        
+    def get_room_number(self,instance):
+        return instance.room_number
     
     class Meta:
         model = Room
         fields = [
             'reserver_name',
             'room_number',
-            'date_reserve',
-            'date_unreserved',
+            'until_reserve',
         ]
 
-    # def create(self, validated_data):
-    #     reserve = validated_data.get('reserved')
-
-    #     return isinstance
+    def create(self, validated_data):
+        room = Room.objects.get(room_number = validated_data.get('room_number'))
+        room.reserver_name = validated_data.get('reserver_name')
+        room.until_reserve = validated_data.get('until_reserve')
+        room.save()
+        return room
+    
+    def update(self, instance, validated_data):
+        instance.reserver_name = validated_data.get('reserver_name', instance.reserver_name)
+        instance.until_reserve = validated_data.get('until_reserve', instance.until_reserve)
+        instance.save()
+        return instance
