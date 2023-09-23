@@ -30,6 +30,12 @@ class CreateHotelSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
     
 
+def validate_until_reserve(until_reserve):
+    current_time = timezone.now()
+    if until_reserve < current_time:
+        raise serializers.ValidationError("until_reserve should be after now!")
+
+
 class CreateRoomSerializer(serializers.ModelSerializer):
     # hotel = serializers.PrimaryKeyRelatedField(queryset=Hotel.objects.all())
     until_reserve = serializers.DateTimeField(read_only=True)
@@ -42,8 +48,8 @@ class CreateRoomSerializer(serializers.ModelSerializer):
                 queryset= Room.objects.all(),
                 fields=['hotel','room_number'],
             ),
-            
         ]
+        extra_kwargs = {'until_reserve': {'validator': validate_until_reserve}}
         model = Room
         fields = [
             'id',
@@ -69,9 +75,8 @@ class CreateRoomSerializer(serializers.ModelSerializer):
         return instance.reserver_name
 
     def to_internal_value(self, data):
-        data = data.copy()  # Create a mutable copy
+        data = data.copy() 
         hotel_id = self.context['view'].kwargs.get('pk2')
-        # hotel = Hotel.objects.get(pk=hotel_id)
         data['hotel'] = hotel_id
         return super().to_internal_value(data)
         
@@ -87,8 +92,6 @@ class CreateRoomSerializer(serializers.ModelSerializer):
     )
         return super().create(validated_data)
 
-
-
     def __init__(self, *args, **kwargs):
         super(CreateRoomSerializer, self).__init__(*args, **kwargs)
         
@@ -99,13 +102,9 @@ class CreateRoomSerializer(serializers.ModelSerializer):
             'list',
         ]:
             self.fields["room_number"] = serializers.SerializerMethodField()
-            self.fields["hotel"] = serializers.SerializerMethodField(read_only=True)
+            self.fields["hotel"] = serializers.SerializerMethodField()
 
 
-def validate_until_reserve(until_reserve):
-    current_time = timezone.now()
-    if until_reserve < current_time:
-        raise serializers.ValidationError("until_reserve should be after now!")
 
 class ReserveRoomSerializer(ModelSerializer):
     room_number = serializers.SerializerMethodField(read_only = True)
