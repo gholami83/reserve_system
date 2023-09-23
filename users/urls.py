@@ -15,4 +15,4 @@ urlpatterns = [
     # path('<int:pk>/',UsersViewSets_detail,name='user_detail'),
     # path('<int:pk>/hotel/',CreateAdminViewSets_list,name='admin_list'),
     # path('<int:pk>/hotel/<int:id>/',CreateAdminViewSets_detail,name='admin_detail'),
-]
+]   

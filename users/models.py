@@ -16,7 +16,7 @@ class Hotel(models.Model):
     
 
 class Room(models.Model):
-    hotel = models.ForeignKey(Hotel,on_delete=models.CASCADE)
+    hotel = models.ForeignKey(Hotel,on_delete=models.CASCADE,blank=True)
     reserver_name = models.CharField(max_length=50,null=False)
     room_number = models.IntegerField(blank=False)
     until_reserve = models.DateTimeField(null=True)

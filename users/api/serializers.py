@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from rest_framework.decorators import action
@@ -27,19 +28,21 @@ class CreateHotelSerializer(serializers.ModelSerializer):
             "user" : self.context['request'].user,
         })
         return super().create(validated_data)
-
+    
 
 class CreateRoomSerializer(serializers.ModelSerializer):
-    hotel = serializers.SerializerMethodField(read_only=True)
-    until_reserve = serializers.SerializerMethodField(read_only=True)
+    # hotel = serializers.PrimaryKeyRelatedField(queryset=Hotel.objects.all())
+    until_reserve = serializers.DateTimeField(read_only=True)
     reserver_name = serializers.SerializerMethodField(read_only=True)
+    
 
     class Meta:
         validators = [
             UniqueTogetherValidator(
                 queryset= Room.objects.all(),
-                fields=['hotel','room_number']
+                fields=['hotel','room_number'],
             ),
+            
         ]
         model = Room
         fields = [
@@ -49,8 +52,12 @@ class CreateRoomSerializer(serializers.ModelSerializer):
             'room_number',
             'until_reserve',
         ]
+
     def get_hotel(self,instance):
-        return instance.hotel.name
+        return {
+            'id':instance.hotel.id,
+            'name':instance.hotel.name
+        }
         
     def get_room_number(self, instance):
         return instance.room_number
@@ -60,18 +67,45 @@ class CreateRoomSerializer(serializers.ModelSerializer):
    
     def get_reserver_name(self, instance):
         return instance.reserver_name
-    
+
+    def to_internal_value(self, data):
+        data = data.copy()  # Create a mutable copy
+        hotel_id = self.context['view'].kwargs.get('pk2')
+        # hotel = Hotel.objects.get(pk=hotel_id)
+        data['hotel'] = hotel_id
+        return super().to_internal_value(data)
+        
     def create(self, validated_data):
         hotel_id = self.context.get('hotel_id')
-        room_number = self.context.get('room_number')
+        hotel = Hotel.objects.get(pk=hotel_id)
+        room_number = validated_data['room_number']
         validated_data.update(
         {
             "room_number":room_number,
-            "hotel_id":hotel_id,
+            "hotel":hotel,
         },
     )
         return super().create(validated_data)
 
+
+
+    def __init__(self, *args, **kwargs):
+        super(CreateRoomSerializer, self).__init__(*args, **kwargs)
+        
+
+        view = self.context.get('view')
+        if view.action in [
+            'retrieve',
+            'list',
+        ]:
+            self.fields["room_number"] = serializers.SerializerMethodField()
+            self.fields["hotel"] = serializers.SerializerMethodField(read_only=True)
+
+
+def validate_until_reserve(until_reserve):
+    current_time = timezone.now()
+    if until_reserve < current_time:
+        raise serializers.ValidationError("until_reserve should be after now!")
 
 class ReserveRoomSerializer(ModelSerializer):
     room_number = serializers.SerializerMethodField(read_only = True)
