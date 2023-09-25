@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -68,6 +69,7 @@ class CreateRoomViewSets(ModelViewSet):
         else:
             return [
                 IsAuthenticated(),
+                IsReservePermision(),
             ]
     
     @action(detail=True, methods=['post'])
@@ -75,7 +77,7 @@ class CreateRoomViewSets(ModelViewSet):
         room = Room.objects.get(pk=pk)
         self.number = room.room_number
         serializer = ReserveRoomSerializer(room,data=request.data)     
-        if serializer.is_valid():
+        if serializer.is_valid():   
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

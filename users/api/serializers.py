@@ -1,7 +1,6 @@
 from django.utils import timezone
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
-from rest_framework.decorators import action
 from rest_framework.validators import UniqueTogetherValidator
 
 from ..models import Hotel,Room
@@ -30,10 +29,6 @@ class CreateHotelSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
     
 
-def validate_until_reserve(until_reserve):
-    current_time = timezone.now()
-    if until_reserve < current_time:
-        raise serializers.ValidationError("until_reserve should be after now!")
 
 
 class CreateRoomSerializer(serializers.ModelSerializer):
@@ -49,7 +44,7 @@ class CreateRoomSerializer(serializers.ModelSerializer):
                 fields=['hotel','room_number'],
             ),
         ]
-        extra_kwargs = {'until_reserve': {'validator': validate_until_reserve}}
+        # extra_kwargs = {'until_reserve': {'validator': validate_until_reserve}}
         model = Room
         fields = [
             'id',
@@ -64,6 +59,7 @@ class CreateRoomSerializer(serializers.ModelSerializer):
             'id':instance.hotel.id,
             'name':instance.hotel.name
         }
+
         
     def get_room_number(self, instance):
         return instance.room_number
@@ -132,3 +128,9 @@ class ReserveRoomSerializer(ModelSerializer):
         instance.until_reserve = validated_data.get('until_reserve', instance.until_reserve)
         instance.save()
         return instance
+
+    def validate_until_reserve(self,until_reserve):
+        current_time = timezone.now()
+        if until_reserve < current_time:
+            raise serializers.ValidationError("until_reserve should be after now!")
+        return until_reserve
