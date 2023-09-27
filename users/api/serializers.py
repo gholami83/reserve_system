@@ -1,3 +1,6 @@
+import pytz
+import datetime
+import time
 from django.utils import timezone
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
@@ -129,8 +132,18 @@ class ReserveRoomSerializer(ModelSerializer):
         instance.save()
         return instance
 
-    def validate_until_reserve(self,until_reserve):
-        current_time = timezone.now()
-        if until_reserve < current_time:
+    def validate_until_reserve(self, until_reserve):
+        london_tz = pytz.timezone('Europe/London')
+        tehran_timezone = pytz.timezone('Asia/Tehran')
+        current_timestamp = time.time()
+        current_datetime = pytz.utc.localize(datetime.datetime.utcfromtimestamp(current_timestamp)).astimezone(tehran_timezone)
+        until_reserve_tehran = until_reserve.astimezone()
+        current_datetime = current_datetime + datetime.timedelta(hours=3,minutes=30 )
+        current_datetime = current_datetime.timestamp()
+        until_reserve_tehran = until_reserve.timestamp()
+        print(current_datetime)
+        print(until_reserve_tehran)
+
+        if current_datetime > until_reserve_tehran:
             raise serializers.ValidationError("until_reserve should be after now!")
         return until_reserve

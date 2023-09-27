@@ -47,10 +47,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'dj_rest_auth',     
     'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
     'dj_rest_auth.registration',
+    'allauth',
 ]
 SITE_ID = 1
 
@@ -152,9 +150,26 @@ REST_AUTH = {
 
 }
 
+AUTHENTICATION_BACKENDS = [
+       'django.contrib.auth.backends.ModelBackend',
+       'allauth.account.auth_backends.AuthenticationBackend'
+   ]
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Your Project API',
     'DESCRIPTION': 'Your project description',
     'VERSION': '1.0.0',
 }
+
+
+SOCIALACCOUNT_PROVIDERS = {
+       'google': {
+           'SCOPE': [
+               'profile',
+               'email',
+           ],
+           'AUTH_PARAMS': {
+               'access_type': 'online',
+           }
+       }
+   }
